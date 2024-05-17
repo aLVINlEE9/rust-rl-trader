@@ -303,7 +303,7 @@ mod tests {
         let original_weights: Vec<Tensor> = network1
             .layers
             .iter()
-            .map(|layer| layer.ws.shallow_clone())
+            .map(|layer| layer.ws.copy())
             .collect();
 
         network1.soft_copy_from(&network2, &tau);
@@ -338,7 +338,7 @@ mod tests {
         let original_weights: Vec<Tensor> = network1
             .layers
             .iter()
-            .map(|layer| layer.ws.shallow_clone())
+            .map(|layer| layer.ws.copy())
             .collect();
 
         network1.soft_copy_from(&network2, &tau);

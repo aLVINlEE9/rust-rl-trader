@@ -1,0 +1,15 @@
+[workspace]
+members = [ 
+    "runner",
+    "dqn",
+]
+resolver = "2"
+
+[workspace.dependencies]
+runner = { path = "runner" }
+dqn = { path = "dqn" }
+
+tch = "0.15.0"
+pyo3 = "0.21.2"
+ndarray = "0.15.6"
+plotters = "0.3.5"

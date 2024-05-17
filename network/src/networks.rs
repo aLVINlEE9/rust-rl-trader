@@ -201,6 +201,11 @@ mod tests {
             Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
         let network2 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
 
+        for _ in 0..50 {
+            let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
+            let _ = network1.forward_t(&x);
+        }
+
         network1.copy_from(&network2);
 
         for (layer1, layer2) in network1.layers.iter().zip(network2.layers.iter()) {
@@ -219,6 +224,11 @@ mod tests {
         let mut network1 =
             Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
         let network2 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+
+        for _ in 0..50 {
+            let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
+            let _ = network1.forward_t(&x);
+        }
 
         network1.copy_from(&network2);
 
@@ -411,6 +421,11 @@ mod tests {
         let learning_rate = 0.001;
 
         let network1 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+
+        for _ in 0..50 {
+            let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
+            let _ = network1.forward_t(&x);
+        }
         let network2 = network1.clone();
 
         for (layer1, layer2) in network1.layers.iter().zip(network2.layers.iter()) {

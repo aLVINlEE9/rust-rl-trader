@@ -58,6 +58,30 @@ impl ReplayBuffer {
         (states, next_states, actions, rewards)
     }
 
+    pub fn get_batch_size(&self) -> usize {
+        self.batch_size
+    }
+
+    pub fn get_capacity(&self) -> usize {
+        self.capacity
+    }
+
+    pub fn get_states(&self) -> &Tensor {
+        &self.states
+    }
+
+    pub fn get_next_states(&self) -> &Tensor {
+        &self.next_states
+    }
+
+    pub fn get_actions(&self) -> &Tensor {
+        &self.actions
+    }
+
+    pub fn get_rewards(&self) -> &Tensor {
+        &self.rewards
+    }
+
     pub fn len(&self) -> usize {
         self.len
     }

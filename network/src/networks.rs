@@ -11,9 +11,10 @@ pub struct Network {
 impl Clone for Network {
     fn clone(&self) -> Self {
         let mut new = Self::new(
-            self.layers.first().unwrap().ws.size()[1] as usize, // input_dim
-            self.layers.last().unwrap().ws.size()[0] as usize,  // output_dim
-            self.layers
+            &(self.layers.first().unwrap().ws.size()[1] as usize), // input_dim
+            &(self.layers.last().unwrap().ws.size()[0] as usize),  // output_dim
+            &self
+                .layers
                 .iter()
                 .take(self.layers.len() - 1)
                 .map(|layer| layer.ws.size()[0] as usize)
@@ -27,9 +28,9 @@ impl Clone for Network {
 
 impl Network {
     pub fn new(
-        input_dim: usize,
-        output_dim: usize,
-        hidden_layers: Vec<usize>,
+        input_dim: &usize,
+        output_dim: &usize,
+        hidden_layers: &Vec<usize>,
         learning_rate: f64,
     ) -> Self {
         let device = Device::cuda_if_available();
@@ -39,9 +40,9 @@ impl Network {
             .unwrap();
 
         let mut layers = Vec::new();
-        let mut in_dim = input_dim as i64;
+        let mut in_dim = *input_dim as i64;
 
-        for &hidden_dim in &hidden_layers {
+        for &hidden_dim in hidden_layers {
             layers.push(nn::linear(
                 var_store.root() / format!("linear{}", layers.len() + 1),
                 in_dim,
@@ -54,7 +55,7 @@ impl Network {
         layers.push(nn::linear(
             var_store.root() / format!("linear{}", layers.len() + 1),
             in_dim,
-            output_dim as i64,
+            *output_dim as i64,
             Default::default(),
         ));
 
@@ -93,14 +94,14 @@ impl Network {
         });
     }
 
-    pub fn soft_copy_from(&mut self, source: &Self, tau: f64) {
+    pub fn soft_copy_from(&mut self, source: &Self, tau: &f64) {
         tch::no_grad(|| {
             for (layer, source_layer) in self.layers.iter_mut().zip(&source.layers) {
                 layer.ws = layer.ws.f_mul_scalar(1.0 - tau).unwrap()
-                    + source_layer.ws.f_mul_scalar(tau).unwrap();
+                    + source_layer.ws.f_mul_scalar(*tau).unwrap();
                 if let (Some(bs), Some(source_bs)) = (layer.bs.as_mut(), source_layer.bs.as_ref()) {
                     *bs =
-                        bs.f_mul_scalar(1.0 - tau).unwrap() + source_bs.f_mul_scalar(tau).unwrap();
+                        bs.f_mul_scalar(1.0 - tau).unwrap() + source_bs.f_mul_scalar(*tau).unwrap();
                 }
             }
         });
@@ -127,9 +128,9 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
-        assert_eq!(network.layers.len(), hidden_layers.clone().len() + 1);
+        assert_eq!(network.layers.len(), &hidden_layers.len() + 1);
         assert_eq!(network.learning_rate, learning_rate);
     }
 
@@ -140,7 +141,7 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         assert_eq!(
             network.layers[0].ws.size(),
@@ -167,7 +168,7 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
         let y = network.forward(&x);
@@ -182,7 +183,7 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
         let y = network.forward_t(&x);
@@ -197,9 +198,8 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let mut network1 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let network2 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let mut network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for _ in 0..50 {
             let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
@@ -221,9 +221,8 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let mut network1 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let network2 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let mut network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for _ in 0..50 {
             let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
@@ -246,10 +245,8 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let mut network1 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let mut network2 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let mut network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let mut network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for layer in network2.layers.iter_mut() {
             layer.ws = Tensor::randn(layer.ws.size(), (tch::Kind::Float, Device::Cpu));
@@ -269,9 +266,8 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network1 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let mut network2 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let mut network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for _ in 0..50 {
             let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
@@ -293,10 +289,8 @@ mod tests {
         let learning_rate = 0.001;
         let tau = 0.1;
 
-        let mut network1 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let mut network2 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let mut network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let mut network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for layer in network2.layers.iter_mut() {
             layer.ws = Tensor::randn(layer.ws.size(), (tch::Kind::Float, Device::Cpu));
@@ -308,7 +302,7 @@ mod tests {
             .map(|layer| layer.ws.shallow_clone())
             .collect();
 
-        network1.soft_copy_from(&network2, tau);
+        network1.soft_copy_from(&network2, &tau);
 
         for (layer1, layer2, original_weight) in izip!(
             network1.layers.iter(),
@@ -329,9 +323,8 @@ mod tests {
         let learning_rate = 0.001;
         let tau = 0.1;
 
-        let mut network1 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let network2 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let mut network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for _ in 0..50 {
             let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
@@ -344,7 +337,7 @@ mod tests {
             .map(|layer| layer.ws.shallow_clone())
             .collect();
 
-        network1.soft_copy_from(&network2, tau);
+        network1.soft_copy_from(&network2, &tau);
 
         for (layer1, layer2, original_weight) in izip!(
             network1.layers.iter(),
@@ -364,10 +357,8 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let mut network1 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let mut network2 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let mut network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let mut network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for layer in network2.layers.iter_mut() {
             layer.ws = Tensor::randn(layer.ws.size(), (tch::Kind::Float, Device::Cpu));
@@ -393,9 +384,8 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network1 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
-        let mut network2 =
-            Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
+        let mut network2 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for _ in 0..50 {
             let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));
@@ -420,7 +410,7 @@ mod tests {
         let hidden_layers = vec![8, 16, 32];
         let learning_rate = 0.001;
 
-        let network1 = Network::new(input_dim, output_dim, hidden_layers.clone(), learning_rate);
+        let network1 = Network::new(&input_dim, &output_dim, &hidden_layers, learning_rate);
 
         for _ in 0..50 {
             let x = Tensor::randn([1, input_dim as i64], (tch::Kind::Float, Device::Cpu));

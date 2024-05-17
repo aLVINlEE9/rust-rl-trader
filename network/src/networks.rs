@@ -107,6 +107,10 @@ impl Network {
         });
     }
 
+    pub fn get_layers(&self) -> &[nn::Linear] {
+        &self.layers
+    }
+
     pub fn save(&self, path: &str) {
         self.var_store.save(path).unwrap();
     }

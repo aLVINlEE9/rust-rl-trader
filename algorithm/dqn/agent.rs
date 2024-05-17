@@ -4,13 +4,13 @@ use rand::Rng;
 use tch::Tensor;
 
 pub struct DQNAgent {
-    model_config: DQNModelConfig,
-    hyper_params: DQNHyperParms,
+    pub model_config: DQNModelConfig,
+    pub hyper_params: DQNHyperParms,
 }
 
 impl DQNAgent {
-    pub fn new(hyper_params: DQNHyperParms) -> Self {
-        let model_config = DQNModelConfig::new(&hyper_params, false);
+    pub fn new(hyper_params: DQNHyperParms, is_inference: bool) -> Self {
+        let model_config = DQNModelConfig::new(&hyper_params, is_inference);
         DQNAgent {
             model_config,
             hyper_params,
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn test_dqn_agent() {
         let hyper_params = create_dqn_hyper_params();
-        let mut dqn_agent = DQNAgent::new(hyper_params);
+        let mut dqn_agent = DQNAgent::new(hyper_params, false);
 
         let state = Tensor::randn([4], tch::kind::FLOAT_CPU);
         let next_state = Tensor::randn([4], tch::kind::FLOAT_CPU);
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn test_dqn_agent_train() {
         let hyper_params = create_dqn_hyper_params();
-        let mut dqn_agent = DQNAgent::new(hyper_params);
+        let mut dqn_agent = DQNAgent::new(hyper_params, false);
         let original_weights: Vec<Tensor> = dqn_agent
             .model_config
             .policy_network
@@ -147,7 +147,7 @@ mod tests {
     #[test]
     fn test_dqn_agent_updates_target() {
         let hyper_params = create_dqn_hyper_params();
-        let mut dqn_agent = DQNAgent::new(hyper_params);
+        let mut dqn_agent = DQNAgent::new(hyper_params, false);
 
         let original_weights: Vec<Tensor> = dqn_agent
             .model_config
@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn test_compute_loss() {
         let hyper_params = create_dqn_hyper_params();
-        let mut dqn_agent = DQNAgent::new(hyper_params);
+        let mut dqn_agent = DQNAgent::new(hyper_params, false);
 
         for _ in 0..32 {
             let state = Tensor::randn([4], tch::kind::FLOAT_CPU);
@@ -202,7 +202,7 @@ mod tests {
     #[test]
     fn test_act() {
         let hyper_params = create_dqn_hyper_params();
-        let mut dqn_agent = DQNAgent::new(hyper_params);
+        let mut dqn_agent = DQNAgent::new(hyper_params, false);
 
         let state = Tensor::randn([4], tch::kind::FLOAT_CPU);
         let steps = 1.0;
@@ -214,7 +214,7 @@ mod tests {
     #[test]
     fn test_epsilon_decay() {
         let hyper_params = create_dqn_hyper_params();
-        let mut dqn_agent = DQNAgent::new(hyper_params);
+        let mut dqn_agent = DQNAgent::new(hyper_params, false);
 
         let state = Tensor::randn([4], tch::kind::FLOAT_CPU);
         for steps in 0..1000 {

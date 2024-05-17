@@ -4,7 +4,7 @@ use tch::{Device, Tensor};
 pub struct Network {
     var_store: nn::VarStore,
     layers: Vec<nn::Linear>,
-    _opt: nn::Optimizer,
+    pub opt: nn::Optimizer,
     learning_rate: f64,
 }
 
@@ -35,7 +35,7 @@ impl Network {
     ) -> Self {
         let device = Device::cuda_if_available();
         let var_store = nn::VarStore::new(device);
-        let _opt = nn::Adam::default()
+        let opt = nn::Adam::default()
             .build(&var_store, learning_rate)
             .unwrap();
 
@@ -62,7 +62,7 @@ impl Network {
         Self {
             var_store,
             layers,
-            _opt,
+            opt,
             learning_rate,
         }
     }

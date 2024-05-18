@@ -1,7 +1,7 @@
-# rust-rl
+# rust-rl-trader
 
 ## Overview
-`rust-rl` is a project that allows you to run various reinforcement learning (RL) algorithms using Rust. It is designed to be simple and efficient, providing a platform to experiment with RL techniques. This project utilizes the `tch-rs` crate for tensor operations and neural network functionalities.
+`rust-rl-trader` is a project designed to leverage reinforcement learning (RL) algorithms for trading purposes. Using Rust, this tool allows for the backtesting of trading strategies, providing a robust platform to experiment with RL techniques in a financial context. The project utilizes the `tch-rs` crate for tensor operations and neural network functionalities, ensuring efficient performance and flexibility.
 
 ## Usage
 To run an example, navigate to the project directory and execute:

@@ -1,5 +1,5 @@
 use super::utils::*;
-use config::model_config::{DQNHyperParms, DQNModelConfig};
+use crate::config::model_config::{DQNHyperParms, DQNModelConfig};
 use rand::Rng;
 use tch::Tensor;
 
@@ -26,12 +26,14 @@ impl DQNAgent {
             println!("Training the policy network...");
             // Sample a random batch of transitions
             let samples = self.model_config.replay_buffer.random_batch();
-            // Optimize the policy network
-            self.model_config.policy_network.opt.zero_grad();
             // Compute the loss
             let loss = compute_loss(&samples, &self.model_config, &self.hyper_params);
+            // Optimize the policy network
+            self.model_config.policy_network.opt.zero_grad();
             // Compute the gradients
             loss.backward();
+            // Clip the gradients
+            clip_grad_value(&mut self.model_config.policy_network, 100.0);
             // Update the weights
             self.model_config.policy_network.opt.step();
             // Update the target network
@@ -62,7 +64,7 @@ impl DQNAgent {
             select_action_from_policy()
         } else {
             // In training mode, use epsilon-greedy strategy
-            if self.hyper_params.epsilon > rng.gen_range(0.0..1.0) {
+            if rng.gen_range(0.0..1.0) < self.hyper_params.epsilon {
                 // Explore: Select a random action
                 rng.gen_range(0..self.hyper_params.output_dim as i64)
             } else {

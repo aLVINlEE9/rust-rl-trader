@@ -2,7 +2,7 @@ use tch::nn::{self, Module, ModuleT, OptimizerConfig};
 use tch::{Device, Tensor};
 
 pub struct Network {
-    var_store: nn::VarStore,
+    pub var_store: nn::VarStore,
     layers: Vec<nn::Linear>,
     pub opt: nn::Optimizer,
     learning_rate: f64,
@@ -68,17 +68,25 @@ impl Network {
     }
 
     pub fn forward(&self, x: &Tensor) -> Tensor {
-        let mut x = x.shallow_clone();
-        for layer in &self.layers {
-            x = layer.forward(&x).relu();
+        let mut x = x.copy();
+        for (i, layer) in self.layers.iter().enumerate() {
+            if i == self.layers.len() - 1 {
+                x = layer.forward(&x);
+            } else {
+                x = layer.forward(&x).relu();
+            }
         }
         x
     }
 
     pub fn forward_t(&self, x: &Tensor) -> Tensor {
-        let mut x = x.shallow_clone();
-        for layer in &self.layers {
-            x = layer.forward_t(&x, false).relu();
+        let mut x = x.copy();
+        for (i, layer) in self.layers.iter().enumerate() {
+            if i == self.layers.len() - 1 {
+                x = layer.forward_t(&x, false);
+            } else {
+                x = layer.forward_t(&x, false).relu();
+            }
         }
         x
     }

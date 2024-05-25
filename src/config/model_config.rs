@@ -1,5 +1,5 @@
-use memory::memory::ReplayBuffer;
-use network::networks::Network;
+use crate::memory::memory::ReplayBuffer;
+use crate::network::networks::Network;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
 use tch::Tensor;
 

@@ -1,25 +1,15 @@
-[workspace]
-members = [ 
-    "runner",
-    "config", 
-    "network", 
-    "algorithm", 
-    "env", 
-    "memory",
-]
-resolver = "2"
+[package]
+name = "rust-rl-trader"
+version = "0.1.0"
+edition = "2021"
 
-[workspace.dependencies]
-runner = { path = "runner" }
-config = { path = "config" }
-network = { path = "network" }
-algorithm = { path = "algorithm" }
-env = { path = "env" }
-memory = { path = "memory" }
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dependencies]
 tch = "0.15.0"
 pyo3 = "0.21.2"
 ndarray = "0.15.6"
 plotters = "0.3.5"
 itertools = "0.13.0"
 rand = "0.8.5"
+parquet = "51.0.0"

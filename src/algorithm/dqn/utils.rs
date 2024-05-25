@@ -1,4 +1,5 @@
-use config::model_config::{DQNHyperParms, DQNModelConfig};
+use crate::config::model_config::{DQNHyperParms, DQNModelConfig};
+use crate::network::networks::Network;
 use tch::{Reduction, Tensor};
 
 pub fn compute_loss(
@@ -16,8 +17,14 @@ pub fn compute_loss(
         let (max_values, _) = next_q_values.max_dim(1, false);
         max_values.unsqueeze(1)
     });
+    let next_q_value = next_q_value.nan_to_num(0.0, f64::INFINITY, f64::NEG_INFINITY);
 
-    let target = (&samples.3 + next_q_value) * hyper_params.gamma;
-    let target = target.nan_to_num(0.0, f64::INFINITY, f64::NEG_INFINITY);
+    let target = next_q_value * hyper_params.gamma + &samples.3;
     curr_q_values.smooth_l1_loss(&target, Reduction::Mean, 1.0)
+}
+
+pub fn clip_grad_value(network: &mut Network, clip_value: f64) {
+    for (_, param) in network.var_store.variables() {
+        let _ = param.grad().clamp_(-clip_value, clip_value);
+    }
 }

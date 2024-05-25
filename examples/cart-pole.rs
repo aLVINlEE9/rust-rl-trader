@@ -1,7 +1,7 @@
-use algorithm::dqn::agent::DQNAgent;
-use config::model_config::DQNHyperParms;
 use plotters::prelude::*;
 use pyo3::prelude::*;
+use rust_rl_trader::algorithm::dqn::agent::DQNAgent;
+use rust_rl_trader::config::model_config::DQNHyperParms;
 use tch::Tensor;
 
 fn plot_steps(steps: &[usize], plot_name: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -47,11 +47,11 @@ fn main() -> PyResult<()> {
         let gym = py.import_bound("gym")?;
         // Create a new environment
         let env = gym.call_method("make", ("CartPole-v1",), None)?;
-
         // Get the initial state of the environment
         let (state_array, _) = env
             .call_method("reset", (), None)?
             .extract::<(Vec<f64>, Py<PyAny>)>()?;
+
         // Get the action space of the environment
         let action_space = env.getattr("action_space")?;
 
